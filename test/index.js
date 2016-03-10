@@ -5,8 +5,9 @@ var nodeResolve = require('rollup-plugin-node-resolve');
 var globals = require('rollup-plugin-node-globals');
 var builtins = require('..');
 var json = require('rollup-plugin-json');
+var fs = require('fs');
 var files = [
-  'hash.js'
+  'events.js'
 ];
 describe( 'rollup-plugin-node-builtins', function () {
   files.forEach(function (file) {
@@ -25,7 +26,7 @@ describe( 'rollup-plugin-node-builtins', function () {
 		}).then( function ( bundle ) {
 			var generated = bundle.generate();
 			var code = generated.code;
-			eval(code);
+		  eval(code);
 		});
 	});
 })

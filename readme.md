@@ -23,4 +23,4 @@ rollup({
 })
 ```
 
-may or may not work yet
+Some currently don't work (crypto) some do (events)
