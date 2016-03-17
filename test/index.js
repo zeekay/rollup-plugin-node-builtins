@@ -15,12 +15,12 @@ describe( 'rollup-plugin-node-builtins', function () {
 		return rollup.rollup({
 			entry: 'test/examples/' + file,
 			plugins: [
+        globals(),
         builtins(),
         nodeResolve({ jsnext: true, main: true, browser: true }),
         commonjs({
-          exclude: ['node_modules/rollup-plugin-node-globals/**']
+          ignoreGlobal: true
         }),
-        globals(),
         json()
 			]
 		}).then( function ( bundle ) {

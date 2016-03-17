@@ -1,4 +1,4 @@
-import EE from 'events';
+import {EventEmitter as EE} from 'events';
 
 var e = new EE();
 e.on('it', function (foo) {
