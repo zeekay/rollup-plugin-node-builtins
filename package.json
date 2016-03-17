@@ -32,6 +32,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:calvinmetcalf/rollup-pulgin-node-builtins.git"
+    "url": "git@github.com:calvinmetcalf/rollup-plugin-node-builtins.git"
   }
 }
