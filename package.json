@@ -9,7 +9,7 @@
     "pretest": "npm run build",
     "build": "rollup -c -f cjs -o dist/rollup-plugin-node-builtins.cjs.js && rollup -c -f es6 -o dist/rollup-plugin-node-builtins.es6.js",
     "prebuild": "rm -rf dist && mkdir dist",
-    "prepublish": "npm run build"
+    "postinstall": "npm run build"
   },
   "keywords": [
     "rollup-plugin"
@@ -21,12 +21,12 @@
     "node-libs-browser": "^1.0.0",
     "process-es6": "^0.11.2",
     "readable-stream": "^2.0.6",
-    "rollup-plugin-node-globals": "^1.0.5"
-  },
-  "devDependencies": {
+    "rollup-plugin-node-globals": "^1.0.5",
     "babel-preset-es2015-rollup": "^1.1.1",
     "rollup": "^0.25.4",
-    "rollup-plugin-babel": "^2.4.0",
+    "rollup-plugin-babel": "^2.4.0"
+  },
+  "devDependencies": {
     "rollup-plugin-commonjs": "^2.2.1",
     "rollup-plugin-json": "^2.0.0",
     "rollup-plugin-node-resolve": "^1.5.0"
