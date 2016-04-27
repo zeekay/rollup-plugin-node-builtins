@@ -553,8 +553,8 @@ export function log() {
  *     prototype.
  * @param {function} superCtor Constructor function to inherit prototype from.
  */
-import inherit from 'inherits';
-export {inherit}
+import inherits from 'inherits';
+export {inherits}
 
 export function _extend(origin, add) {
   // Don't do anything if add isn't an object
@@ -573,7 +573,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 export default {
-  inherit: inherit,
+  inherits: inherits,
   _extend: _extend,
   log: log,
   isBuffer: isBuffer,
