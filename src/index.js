@@ -5,7 +5,7 @@ Object.keys(_libs).forEach(key=>libs.set(key, _libs[key]));
 
 // our es6 versions
 libs.set('process', require.resolve('process-es6'));
-libs.set('buffer', require.resolve('rollup-plugin-node-globals/dist/buffer'));
+libs.set('buffer', require.resolve('buffer-es6'));
 libs.set('util', require.resolve(join('..', 'src', 'es6', 'util')));
 libs.set('sys', libs.get('util'));
 libs.set('events', require.resolve(join('..', 'src', 'es6', 'events')));
