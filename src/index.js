@@ -12,6 +12,7 @@ libs.set('events', require.resolve(join('..', 'src', 'es6', 'events')));
 libs.set('stream', require.resolve(join('..', 'src', 'es6', 'stream')));
 libs.set('path', require.resolve(join('..', 'src', 'es6', 'path')));
 libs.set('querystring', require.resolve(join('..', 'src', 'es6', 'qs')));
+libs.set('punycode', require.resolve(join('..', 'src', 'es6', 'punycode')));
 function resolveId(importee) {
   if (importee && importee.slice(-1) === '/') {
     importee === importee.slice(0, -1);
