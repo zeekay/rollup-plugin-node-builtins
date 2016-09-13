@@ -465,3 +465,11 @@ export var ucs2 = {
   decode: ucs2decode,
   encode: ucs2encode
 };
+export default {
+  version: version,
+  ucs2: ucs2,
+  toASCII: toASCII,
+  toUnicode: toUnicode,
+  encode: encode,
+  decode: decode
+}

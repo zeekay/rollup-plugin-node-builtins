@@ -7,11 +7,12 @@ var builtins = require('..');
 var json = require('rollup-plugin-json');
 var fs = require('fs');
 var files = [
-  'events.js'
+  'events.js',
+  'url.js'
 ];
 describe( 'rollup-plugin-node-builtins', function () {
   files.forEach(function (file) {
-	it( 'works with ' + file, function () {
+	it( 'works with ' + file, function (done) {
 		return rollup.rollup({
 			entry: 'test/examples/' + file,
 			plugins: [
@@ -26,7 +27,8 @@ describe( 'rollup-plugin-node-builtins', function () {
 		}).then( function ( bundle ) {
 			var generated = bundle.generate();
 			var code = generated.code;
-		  eval(code);
+		  var fun = new Function('done', code);
+      fun(done);
 		});
 	});
 })
