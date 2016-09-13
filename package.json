@@ -9,7 +9,7 @@
     "pretest": "npm run build",
     "build": "rollup -c -f cjs -o dist/rollup-plugin-node-builtins.cjs.js && rollup -c -f es6 -o dist/rollup-plugin-node-builtins.es6.js",
     "prebuild": "rm -rf dist && mkdir dist",
-     "prepublish": "npm test"
+    "prepublish": "npm test"
   },
   "keywords": [
     "rollup-plugin"
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "babel-preset-es2015-rollup": "^1.1.1",
+    "mocha": "^3.0.2",
     "rollup": "^0.25.4",
     "rollup-plugin-babel": "^2.4.0"
   },
