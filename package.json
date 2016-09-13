@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-node-builtins",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "use node builtins in browser with rollup",
   "main": "dist/rollup-plugin-node-builtins.cjs.js",
   "jsnext:main": "dist/rollup-plugin-node-builtins.es6.js",
@@ -17,9 +17,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "buffer-es6": "^4.9.2",
     "node-libs-browser": "^1.0.0",
-    "process-es6": "^0.11.2",
-    "rollup-plugin-node-globals": "^1.0.5"
+    "process-es6": "^0.11.2"
   },
   "devDependencies": {
     "babel-preset-es2015-rollup": "^1.1.1",
