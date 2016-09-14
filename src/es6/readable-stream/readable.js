@@ -11,7 +11,27 @@ var StringDecoder;
 var debug = debuglog('stream');
 inherits(Readable, EventEmitter);
 
-
+function prependListener(emitter, event, fn) {
+  // Sadly this is not cacheable as some libraries bundle their own
+  // event emitter implementation with them.
+  if (typeof emitter.prependListener === 'function') {
+    return emitter.prependListener(event, fn);
+  } else {
+    // This is a hack to make sure that our error handler is attached before any
+    // userland ones.  NEVER DO THIS. This is here only because this code needs
+    // to continue to work with older versions of Node.js that do not include
+    // the prependListener() method. The goal is to eventually remove this hack.
+    if (!emitter._events || !emitter._events[event])
+      emitter.on(event, fn);
+    else if (Array.isArray(emitter._events[event]))
+      emitter._events[event].unshift(fn);
+    else
+      emitter._events[event] = [fn, emitter._events[event]];
+  }
+}
+function listenerCount (emitter, type) {
+  return emitter.listeners(type).length;
+}
 var Duplex;
 function ReadableState(options, stream) {
   Duplex = Duplex || require('./_stream_duplex');
@@ -502,11 +522,11 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
     debug('onerror', er);
     unpipe();
     dest.removeListener('error', onerror);
-    if (dest.listenerCount('error') === 0) dest.emit('error', er);
+    if (listenerCount(dest, 'error') === 0) dest.emit('error', er);
   }
 
   // Make sure our error handler is attached before userland ones.
-  dest.prependListener('error', onerror);
+  prependListener(dest, 'error', onerror);
 
   // Both close and finish should trigger unpipe, but only once.
   function onclose() {
