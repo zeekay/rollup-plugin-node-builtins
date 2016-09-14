@@ -3,7 +3,8 @@ var rollup = require( 'rollup' );
 var builtins = require('..');
 var files = [
   'events.js',
-  'url.js'
+  'url.js',
+  'stream.js'
 ];
 describe( 'rollup-plugin-node-builtins', function () {
   files.forEach(function (file) {

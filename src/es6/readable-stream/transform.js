@@ -41,9 +41,7 @@
 // the results of the previous transformed chunk were consumed.
 
 
-export default Transform;
-
-import Duplex from './duplex';
+import {Duplex} from './duplex';
 
 
 import {inherits} from 'util';
@@ -83,7 +81,7 @@ function afterTransform(stream, er, data) {
   }
 }
 
-function Transform(options) {
+export function Transform(options) {
   if (!(this instanceof Transform)) return new Transform(options);
 
   Duplex.call(this, options);

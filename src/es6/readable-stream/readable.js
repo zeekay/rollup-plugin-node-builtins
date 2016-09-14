@@ -1,13 +1,12 @@
 'use strict';
 
-export default Readable;
-
 
 Readable.ReadableState = ReadableState;
 import EventEmitter from 'events';
 import {inherits, debuglog} from 'util';
-var BufferList = require('./buffer-list');
-var StringDecoder;
+import BufferList from './buffer-list';
+import {StringDecoder} from 'string_decoder';
+import {Duplex} from './duplex';
 var debug = debuglog('stream');
 inherits(Readable, EventEmitter);
 
@@ -32,9 +31,7 @@ function prependListener(emitter, event, fn) {
 function listenerCount (emitter, type) {
   return emitter.listeners(type).length;
 }
-var Duplex;
 function ReadableState(options, stream) {
-  Duplex = Duplex || require('./_stream_duplex');
 
   options = options || {};
 
@@ -96,13 +93,12 @@ function ReadableState(options, stream) {
   this.decoder = null;
   this.encoding = null;
   if (options.encoding) {
-    if (!StringDecoder) StringDecoder = require('string_decoder/').StringDecoder;
     this.decoder = new StringDecoder(options.encoding);
     this.encoding = options.encoding;
   }
 }
 
-function Readable(options) {
+export function Readable(options) {
 
   if (!(this instanceof Readable)) return new Readable(options);
 
@@ -205,7 +201,6 @@ function needMoreData(state) {
 
 // backwards compatibility.
 Readable.prototype.setEncoding = function (enc) {
-  if (!StringDecoder) StringDecoder = require('string_decoder/').StringDecoder;
   this._readableState.decoder = new StringDecoder(enc);
   this._readableState.encoding = enc;
   return this;

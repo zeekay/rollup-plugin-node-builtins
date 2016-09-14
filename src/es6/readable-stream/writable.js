@@ -2,13 +2,12 @@
 // Implement an async ._write(chunk, encoding, cb), and it'll handle all
 // the drain event emission and buffering.
 
-export default Writable;
 
 import {inherits, deprecate} from 'util';
 import {Buffer} from 'buffer';
 Writable.WritableState = WritableState;
 import {EventEmitter} from 'events';
-import Duplex from './duplex';
+import {Duplex} from './duplex';
 
 inherits(Writable, EventEmitter);
 
@@ -130,7 +129,7 @@ WritableState.prototype.getBuffer = function writableStateGetBuffer() {
 };
 
 
-function Writable(options) {
+export function Writable(options) {
 
   // Writable ctor is applied to Duplexes, though they're not
   // instanceof Writable, they're instanceof Readable.
