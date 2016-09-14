@@ -64,7 +64,7 @@ export function resolve() {
       resolvedAbsolute = false;
 
   for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    var path = (i >= 0) ? arguments[i] : process.cwd();
+    var path = (i >= 0) ? arguments[i] : '/';
 
     // Skip empty and invalid entries
     if (typeof path !== 'string') {

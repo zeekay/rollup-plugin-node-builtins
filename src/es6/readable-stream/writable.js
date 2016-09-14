@@ -8,7 +8,7 @@ import {Buffer} from 'buffer';
 Writable.WritableState = WritableState;
 import {EventEmitter} from 'events';
 import {Duplex} from './duplex';
-
+import {nextTick} from 'process';
 inherits(Writable, EventEmitter);
 
 function nop() {}
@@ -158,7 +158,7 @@ function writeAfterEnd(stream, cb) {
   var er = new Error('write after end');
   // TODO: defer error events consistently everywhere, not just the cb
   stream.emit('error', er);
-  process.nextTick(cb, er);
+  nextTick(cb, er);
 }
 
 // If we get something that is not a buffer, string, null, or undefined,
@@ -179,7 +179,7 @@ function validChunk(stream, state, chunk, cb) {
   }
   if (er) {
     stream.emit('error', er);
-    process.nextTick(cb, er);
+    nextTick(cb, er);
     valid = false;
   }
   return valid;
@@ -279,7 +279,7 @@ function doWrite(stream, state, writev, len, chunk, encoding, cb) {
 
 function onwriteError(stream, state, sync, er, cb) {
   --state.pendingcb;
-  if (sync) process.nextTick(cb, er);else cb(er);
+  if (sync) nextTick(cb, er);else cb(er);
 
   stream._writableState.errorEmitted = true;
   stream.emit('error', er);
@@ -309,7 +309,7 @@ function onwrite(stream, er) {
 
     if (sync) {
       /*<replacement>*/
-        process.nextTick(afterWrite, stream, state, finished, cb);
+        nextTick(afterWrite, stream, state, finished, cb);
       /*</replacement>*/
     } else {
         afterWrite(stream, state, finished, cb);
@@ -451,7 +451,7 @@ function endWritable(stream, state, cb) {
   state.ending = true;
   finishMaybe(stream, state);
   if (cb) {
-    if (state.finished) process.nextTick(cb);else stream.once('finish', cb);
+    if (state.finished) nextTick(cb);else stream.once('finish', cb);
   }
   state.ended = true;
   stream.writable = false;

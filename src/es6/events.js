@@ -156,11 +156,6 @@ EventEmitter.prototype.emit = function emit(type) {
   if (!handler)
     return false;
 
-  if (domain && this !== process) {
-    domain.enter();
-    needDomainExit = true;
-  }
-
   var isFn = typeof handler === 'function';
   len = arguments.length;
   switch (len) {
@@ -247,14 +242,16 @@ function _addListener(target, type, listener, prepend) {
         w.emitter = target;
         w.type = type;
         w.count = existing.length;
-        process.emitWarning(w);
+        emitWarning(w);
       }
     }
   }
 
   return target;
 }
-
+function emitWarning(e) {
+  typeof console.warn === 'function' ? console.warn(e) : console.log(e);
+}
 EventEmitter.prototype.addListener = function addListener(type, listener) {
   return _addListener(this, type, listener, false);
 };

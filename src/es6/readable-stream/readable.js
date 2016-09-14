@@ -7,6 +7,8 @@ import {inherits, debuglog} from 'util';
 import BufferList from './buffer-list';
 import {StringDecoder} from 'string_decoder';
 import {Duplex} from './duplex';
+import {nextTick} from 'process';
+
 var debug = debuglog('stream');
 inherits(Readable, EventEmitter);
 
@@ -378,7 +380,7 @@ function emitReadable(stream) {
   if (!state.emittedReadable) {
     debug('emitReadable', state.flowing);
     state.emittedReadable = true;
-    if (state.sync) process.nextTick(emitReadable_, stream);else emitReadable_(stream);
+    if (state.sync) nextTick(emitReadable_, stream);else emitReadable_(stream);
   }
 }
 
@@ -397,7 +399,7 @@ function emitReadable_(stream) {
 function maybeReadMore(stream, state) {
   if (!state.readingMore) {
     state.readingMore = true;
-    process.nextTick(maybeReadMore_, stream, state);
+    nextTick(maybeReadMore_, stream, state);
   }
 }
 
@@ -439,10 +441,10 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   state.pipesCount += 1;
   debug('pipe count=%d opts=%j', state.pipesCount, pipeOpts);
 
-  var doEnd = (!pipeOpts || pipeOpts.end !== false) && dest !== process.stdout && dest !== process.stderr;
+  var doEnd = (!pipeOpts || pipeOpts.end !== false);
 
   var endFn = doEnd ? onend : cleanup;
-  if (state.endEmitted) process.NextTick(endFn);else src.once('end', endFn);
+  if (state.endEmitted) nextTick(endFn);else src.once('end', endFn);
 
   dest.on('unpipe', onunpipe);
   function onunpipe(readable) {
@@ -628,7 +630,7 @@ Readable.prototype.on = function (ev, fn) {
       state.readableListening = state.needReadable = true;
       state.emittedReadable = false;
       if (!state.reading) {
-        process.nextTick(nReadingNextTick, this);
+        nextTick(nReadingNextTick, this);
       } else if (state.length) {
         emitReadable(this, state);
       }
@@ -659,7 +661,7 @@ Readable.prototype.resume = function () {
 function resume(stream, state) {
   if (!state.resumeScheduled) {
     state.resumeScheduled = true;
-    process.nextTick(resume_, stream, state);
+    nextTick(resume_, stream, state);
   }
 }
 
@@ -867,7 +869,7 @@ function endReadable(stream) {
 
   if (!state.endEmitted) {
     state.ended = true;
-    process.nextTick(endReadableNT, state, stream);
+    nextTick(endReadableNT, state, stream);
   }
 }
 

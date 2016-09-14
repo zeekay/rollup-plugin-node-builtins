@@ -1,6 +1,6 @@
 
 import {inherits} from 'util';
-
+import {nextTick} from 'process';
 import {Readable} from './readable';
 import {Writable} from './writable';
 
@@ -37,7 +37,7 @@ function onend() {
 
   // no more data can be written.
   // But allow more writes to happen in this tick.
-  process.nextTick(onEndNT, this);
+  nextTick(onEndNT, this);
 }
 
 function onEndNT(self) {
