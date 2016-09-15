@@ -19,12 +19,16 @@ The following modules include ES6 specific version which allow you to do named i
 - url
 - string_decoder*
 - punycode
-- http*
-- https*
+- http*†
+- https*†
 
 \* requires [node-globals plugin](https://github.com/calvinmetcalf/rollup-plugin-node-globals)
 
+† the http and https modules are actually the same and don't differentiate based on protocol
+
 for all other modules this just provides the commonjs module form browserify and you will likely need to use  [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs), [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve), and [rollup-plugin-json](https://github.com/rollup/rollup-plugin-json) in order for them to work, some like crypto, are complex enough that they don't work very well with rollup at all, others may work.
+
+Not all included modules rollup equally, streams (and by extension anything that requires it like http) are a mess of circular references that are pretty much impossible to tree-shake out, similarly url methods are actually a shortcut to a url object so those methods don't tree shake out very well, punycode, path, querystring, events, util, and process tree shake very well especially if you do named imports.
 
 config for using this with something simple like events or querystring
 

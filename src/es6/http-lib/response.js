@@ -1,111 +1,183 @@
+import {overrideMimeType} from './capability';
 import {inherits} from 'util';
-import {Stream} from 'stream';
-export default Response;
-function Response(res) {
-  this.offset = 0;
-  this.readable = true;
+import {Readable} from 'stream';
+
+var rStates = {
+  UNSENT: 0,
+  OPENED: 1,
+  HEADERS_RECEIVED: 2,
+  LOADING: 3,
+  DONE: 4
 }
-inherits(Response, Stream);
-
-var capable = {
-  streaming: true,
-  status2: true
+export {
+  rStates as readyStates
 };
+export function IncomingMessage(xhr, response, mode) {
+  var self = this
+  Readable.call(self)
 
-function parseHeaders(res) {
-  var lines = res.getAllResponseHeaders().split(/\r?\n/);
-  var headers = {};
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i];
-    if (line === '') continue;
+  self._mode = mode
+  self.headers = {}
+  self.rawHeaders = []
+  self.trailers = {}
+  self.rawTrailers = []
 
-    var m = line.match(/^([^:]+):\s*(.*)/);
-    if (m) {
-      var key = m[1].toLowerCase(),
-        value = m[2];
+  // Fake the 'close' event, but only once 'end' fires
+  self.on('end', function() {
+    // The nextTick is necessary to prevent the 'request' module from causing an infinite loop
+    process.nextTick(function() {
+      self.emit('close')
+    })
+  })
+  var read;
+  if (mode === 'fetch') {
+    self._fetchResponse = response
 
-      if (headers[key] !== undefined) {
+    self.url = response.url
+    self.statusCode = response.status
+    self.statusMessage = response.statusText
+      // backwards compatible version of for (<item> of <iterable>):
+      // for (var <item>,_i,_it = <iterable>[Symbol.iterator](); <item> = (_i = _it.next()).value,!_i.done;)
+    for (var header, _i, _it = response.headers[Symbol.iterator](); header = (_i = _it.next()).value, !_i.done;) {
+      self.headers[header[0].toLowerCase()] = header[1]
+      self.rawHeaders.push(header[0], header[1])
+    }
 
-        if (isArray(headers[key])) {
-          headers[key].push(value);
-        } else {
-          headers[key] = [headers[key], value];
+    // TODO: this doesn't respect backpressure. Once WritableStream is available, this can be fixed
+    var reader = response.body.getReader()
+
+    read = function () {
+      reader.read().then(function(result) {
+        if (self._destroyed)
+          return
+        if (result.done) {
+          self.push(null)
+          return
         }
+        self.push(new Buffer(result.value))
+        read()
+      })
+    }
+    read()
+
+  } else {
+    self._xhr = xhr
+    self._pos = 0
+
+    self.url = xhr.responseURL
+    self.statusCode = xhr.status
+    self.statusMessage = xhr.statusText
+    var headers = xhr.getAllResponseHeaders().split(/\r?\n/)
+    headers.forEach(function(header) {
+      var matches = header.match(/^([^:]+):\s*(.*)/)
+      if (matches) {
+        var key = matches[1].toLowerCase()
+        if (key === 'set-cookie') {
+          if (self.headers[key] === undefined) {
+            self.headers[key] = []
+          }
+          self.headers[key].push(matches[2])
+        } else if (self.headers[key] !== undefined) {
+          self.headers[key] += ', ' + matches[2]
+        } else {
+          self.headers[key] = matches[2]
+        }
+        self.rawHeaders.push(matches[1], matches[2])
+      }
+    })
+
+    self._charset = 'x-user-defined'
+    if (!overrideMimeType) {
+      var mimeType = self.rawHeaders['mime-type']
+      if (mimeType) {
+        var charsetMatch = mimeType.match(/;\s*charset=([^;])(;|$)/)
+        if (charsetMatch) {
+          self._charset = charsetMatch[1].toLowerCase()
+        }
+      }
+      if (!self._charset)
+        self._charset = 'utf-8' // best guess
+    }
+  }
+}
+
+inherits(IncomingMessage, Readable)
+
+IncomingMessage.prototype._read = function() {}
+
+IncomingMessage.prototype._onXHRProgress = function() {
+  var self = this
+
+  var xhr = self._xhr
+
+  var response = null
+  switch (self._mode) {
+  case 'text:vbarray': // For IE9
+    if (xhr.readyState !== rStates.DONE)
+      break
+    try {
+      // This fails in IE8
+      response = new global.VBArray(xhr.responseBody).toArray()
+    } catch (e) {}
+    if (response !== null) {
+      self.push(new Buffer(response))
+      break
+    }
+    // Falls through in IE8
+  case 'text':
+    try { // This will fail when readyState = 3 in IE9. Switch mode and wait for readyState = 4
+      response = xhr.responseText
+    } catch (e) {
+      self._mode = 'text:vbarray'
+      break
+    }
+    if (response.length > self._pos) {
+      var newData = response.substr(self._pos)
+      if (self._charset === 'x-user-defined') {
+        var buffer = new Buffer(newData.length)
+        for (var i = 0; i < newData.length; i++)
+          buffer[i] = newData.charCodeAt(i) & 0xff
+
+        self.push(buffer)
       } else {
-        headers[key] = value;
+        self.push(newData, self._charset)
       }
-    } else {
-      headers[line] = true;
+      self._pos = response.length
     }
-  }
-  return headers;
-}
-
-Response.prototype.getResponse = function(xhr) {
-  var respType = String(xhr.responseType).toLowerCase();
-  if (respType === 'blob') return xhr.responseBlob || xhr.response;
-  if (respType === 'arraybuffer') return xhr.response;
-  return xhr.responseText;
-}
-
-Response.prototype.getHeader = function(key) {
-  return this.headers[key.toLowerCase()];
-};
-
-Response.prototype.handle = function(res) {
-  if (res.readyState === 2 && capable.status2) {
-    try {
-      this.statusCode = res.status;
-      this.headers = parseHeaders(res);
-    } catch (err) {
-      capable.status2 = false;
-    }
-
-    if (capable.status2) {
-      this.emit('ready');
-    }
-  } else if (capable.streaming && res.readyState === 3) {
-    try {
-      if (!this.statusCode) {
-        this.statusCode = res.status;
-        this.headers = parseHeaders(res);
-        this.emit('ready');
+    break
+  case 'arraybuffer':
+    if (xhr.readyState !== rStates.DONE || !xhr.response)
+      break
+    response = xhr.response
+    self.push(new Buffer(new Uint8Array(response)))
+    break
+  case 'moz-chunked-arraybuffer': // take whole
+    response = xhr.response
+    if (xhr.readyState !== rStates.LOADING || !response)
+      break
+    self.push(new Buffer(new Uint8Array(response)))
+    break
+  case 'ms-stream':
+    response = xhr.response
+    if (xhr.readyState !== rStates.LOADING)
+      break
+    var reader = new global.MSStreamReader()
+    reader.onprogress = function() {
+      if (reader.result.byteLength > self._pos) {
+        self.push(new Buffer(new Uint8Array(reader.result.slice(self._pos))))
+        self._pos = reader.result.byteLength
       }
-    } catch (err) {}
-
-    try {
-      this._emitData(res);
-    } catch (err) {
-      capable.streaming = false;
     }
-  } else if (res.readyState === 4) {
-    if (!this.statusCode) {
-      this.statusCode = res.status;
-      this.emit('ready');
+    reader.onload = function() {
+      self.push(null)
     }
-    this._emitData(res);
-
-    if (res.error) {
-      this.emit('error', this.getResponse(res));
-    } else this.emit('end');
-
-    this.emit('close');
+      // reader.onerror = ??? // TODO: this
+    reader.readAsArrayBuffer(response)
+    break
   }
-};
 
-Response.prototype._emitData = function(res) {
-  var respBody = this.getResponse(res);
-  if (respBody.toString().match(/ArrayBuffer/)) {
-    this.emit('data', new Uint8Array(respBody, this.offset));
-    this.offset = respBody.byteLength;
-    return;
+  // The ms-stream case handles end separately in reader.onload()
+  if (self._xhr.readyState === rStates.DONE && self._mode !== 'ms-stream') {
+    self.push(null)
   }
-  if (respBody.length > this.offset) {
-    this.emit('data', respBody.slice(this.offset));
-    this.offset = respBody.length;
-  }
-};
-
-var isArray = Array.isArray || function(xs) {
-  return Object.prototype.toString.call(xs) === '[object Array]';
-};
+}

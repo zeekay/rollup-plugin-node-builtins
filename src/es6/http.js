@@ -1,82 +1,104 @@
-import Request from './http-lib/request';
-import url from 'url';
-export function request(params, cb) {
-  if (typeof params === 'string') {
-    params = url.parse(params)
-  }
-  if (!params) params = {};
-  if (!params.host && !params.port) {
-    params.port = parseInt(window.location.port, 10);
-  }
-  if (!params.host && params.hostname) {
-    params.host = params.hostname;
-  }
+/*
+this and http-lib folder
 
-  if (!params.protocol) {
-    if (params.scheme) {
-      params.protocol = params.scheme + ':';
-    } else {
-      params.protocol = window.location.protocol;
-    }
-  }
+The MIT License
 
-  if (!params.host) {
-    params.host = window.location.hostname || window.location.host;
-  }
-  if (/:/.test(params.host)) {
-    if (!params.port) {
-      params.port = params.host.split(':')[1];
-    }
-    params.host = params.host.split(':')[0];
-  }
-  if (!params.port) params.port = params.protocol == 'https:' ? 443 : 80;
+Copyright (c) 2015 John Hiesey
 
-  var req = new Request(new xhrHttp, params);
-  if (cb) req.on('response', cb);
-  return req;
-};
+Permission is hereby granted, free of charge,
+to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to
+deal in the Software without restriction, including
+without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom
+the Software is furnished to do so,
+subject to the following conditions:
 
-export function get(params, cb) {
-  params.method = 'GET';
-  var req = request(params, cb);
-  req.end();
-  return req;
-};
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+import ClientRequest from './http-lib/request';
+import {parse} from 'url';
+
+export function request(opts, cb) {
+  if (typeof opts === 'string')
+    opts = parse(opts)
+
+
+  // Normally, the page is loaded from http or https, so not specifying a protocol
+  // will result in a (valid) protocol-relative url. However, this won't work if
+  // the protocol is something else, like 'file:'
+  var defaultProtocol = global.location.protocol.search(/^https?:$/) === -1 ? 'http:' : ''
+
+  var protocol = opts.protocol || defaultProtocol
+  var host = opts.hostname || opts.host
+  var port = opts.port
+  var path = opts.path || '/'
+
+  // Necessary for IPv6 addresses
+  if (host && host.indexOf(':') !== -1)
+    host = '[' + host + ']'
+
+  // This may be a relative url. The browser should always be able to interpret it correctly.
+  opts.url = (host ? (protocol + '//' + host) : '') + (port ? ':' + port : '') + path
+  opts.method = (opts.method || 'GET').toUpperCase()
+  opts.headers = opts.headers || {}
+
+  // Also valid opts.auth, opts.mode
+
+  var req = new ClientRequest(opts)
+  if (cb)
+    req.on('response', cb)
+  return req
+}
+
+export function get(opts, cb) {
+  var req = request(opts, cb)
+  req.end()
+  return req
+}
 
 export function Agent() {}
-Agent.defaultMaxSockets = 4;
+Agent.defaultMaxSockets = 4
 
-var xhrHttp = (function() {
-  if (typeof window === 'undefined') {
-    throw new Error('no window object present');
-  } else if (window.XMLHttpRequest) {
-    return window.XMLHttpRequest;
-  } else if (window.ActiveXObject) {
-    var axs = [
-      'Msxml2.XMLHTTP.6.0',
-      'Msxml2.XMLHTTP.3.0',
-      'Microsoft.XMLHTTP'
-    ];
-    for (var i = 0; i < axs.length; i++) {
-      try {
-        var ax = new(window.ActiveXObject)(axs[i]);
-        return function() {
-          if (ax) {
-            var ax_ = ax;
-            ax = null;
-            return ax_;
-          } else {
-            return new(window.ActiveXObject)(axs[i]);
-          }
-        };
-      } catch (e) {}
-    }
-    throw new Error('ajax not supported in this browser')
-  } else {
-    throw new Error('ajax not supported in this browser');
-  }
-})();
-
+export var METHODS = [
+  'CHECKOUT',
+  'CONNECT',
+  'COPY',
+  'DELETE',
+  'GET',
+  'HEAD',
+  'LOCK',
+  'M-SEARCH',
+  'MERGE',
+  'MKACTIVITY',
+  'MKCOL',
+  'MOVE',
+  'NOTIFY',
+  'OPTIONS',
+  'PATCH',
+  'POST',
+  'PROPFIND',
+  'PROPPATCH',
+  'PURGE',
+  'PUT',
+  'REPORT',
+  'SEARCH',
+  'SUBSCRIBE',
+  'TRACE',
+  'UNLOCK',
+  'UNSUBSCRIBE'
+]
 export var STATUS_CODES = {
   100: 'Continue',
   101: 'Switching Protocols',

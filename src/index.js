@@ -16,7 +16,7 @@ libs.set('punycode', require.resolve(join('..', 'src', 'es6', 'punycode')));
 libs.set('url', require.resolve(join('..', 'src', 'es6', 'url')));
 libs.set('string_decoder', require.resolve(join('..', 'src', 'es6', 'string-decoder')));
 libs.set('http', require.resolve(join('..', 'src', 'es6', 'http')));
-libs.set('https', require.resolve(join('..', 'src', 'es6', 'https')));
+libs.set('https', require.resolve(join('..', 'src', 'es6', 'http')));
 function resolveId(importee) {
   if (importee && importee.slice(-1) === '/') {
     importee === importee.slice(0, -1);

@@ -1,206 +1,278 @@
-import {Stream} from 'stream';
-import Response from './response';
-import {btoa} from './base64';
+import * as capability from './capability';
 import {inherits} from 'util';
-export default Request;
+import {IncomingMessage, readyStates as rStates} from './response';
+import {Writable} from 'stream';
+import toArrayBuffer from './to-arraybuffer';
 
-function Request(xhr, params) {
-  var self = this;
-  self.writable = true;
-  self.xhr = xhr;
-  self.body = [];
-
-  self.uri = (params.protocol || 'http:') + '//' +
-    params.host +
-    (params.port ? ':' + params.port : '') +
-    (params.path || '/');
-
-  if (typeof params.withCredentials === 'undefined') {
-    params.withCredentials = true;
-  }
-
-  try {
-    xhr.withCredentials = params.withCredentials
-  } catch (e) {}
-
-  if (params.responseType) try {
-    xhr.responseType = params.responseType
-  }
-  catch (e) {}
-
-  xhr.open(
-    params.method || 'GET',
-    self.uri,
-    true
-  );
-
-  xhr.onerror = function(event) {
-    self.emit('error', new Error('Network error'));
-  };
-
-  self._headers = {};
-
-  if (params.headers) {
-    var keys = objectKeys(params.headers);
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      if (!self.isSafeRequestHeader(key)) continue;
-      var value = params.headers[key];
-      self.setHeader(key, value);
-    }
-  }
-
-  if (params.auth) {
-    //basic auth
-    this.setHeader('Authorization', 'Basic ' + btoa(params.auth));
-  }
-
-  var res = new Response;
-  res.on('close', function() {
-    self.emit('close');
-  });
-
-  res.on('ready', function() {
-    self.emit('response', res);
-  });
-
-  res.on('error', function(err) {
-    self.emit('error', err);
-  });
-
-  xhr.onreadystatechange = function() {
-    // Fix for IE9 bug
-    // SCRIPT575: Could not complete the operation due to error c00c023f
-    // It happens when a request is aborted, calling the success callback anyway with readyState === 4
-    if (xhr.__aborted) return;
-    res.handle(xhr);
-  };
-};
-
-inherits(Request, Stream);
-
-Request.prototype.setHeader = function(key, value) {
-  this._headers[key.toLowerCase()] = value
-};
-
-Request.prototype.getHeader = function(key) {
-  return this._headers[key.toLowerCase()]
-};
-
-Request.prototype.removeHeader = function(key) {
-  delete this._headers[key.toLowerCase()]
-};
-
-Request.prototype.write = function(s) {
-  this.body.push(s);
-};
-
-Request.prototype.destroy = function(s) {
-  this.xhr.__aborted = true;
-  this.xhr.abort();
-  this.emit('close');
-};
-
-Request.prototype.end = function(s) {
-  if (s !== undefined) this.body.push(s);
-
-  var keys = objectKeys(this._headers);
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    var value = this._headers[key];
-    if (isArray(value)) {
-      for (var j = 0; j < value.length; j++) {
-        this.xhr.setRequestHeader(key, value[j]);
-      }
-    } else this.xhr.setRequestHeader(key, value)
-  }
-
-  if (this.body.length === 0) {
-    this.xhr.send('');
-  } else if (typeof this.body[0] === 'string') {
-    this.xhr.send(this.body.join(''));
-  } else if (isArray(this.body[0])) {
-    var body = [];
-    for (var i = 0; i < this.body.length; i++) {
-      body.push.apply(body, this.body[i]);
-    }
-    this.xhr.send(body);
-  } else if (/Array/.test(Object.prototype.toString.call(this.body[0]))) {
-    var len = 0;
-    for (var i = 0; i < this.body.length; i++) {
-      len += this.body[i].length;
-    }
-    var body = new(this.body[0].constructor)(len);
-    var k = 0;
-
-    for (var i = 0; i < this.body.length; i++) {
-      var b = this.body[i];
-      for (var j = 0; j < b.length; j++) {
-        body[k++] = b[j];
-      }
-    }
-    this.xhr.send(body);
-  } else if (isXHR2Compatible(this.body[0])) {
-    this.xhr.send(this.body[0]);
+function decideMode(preferBinary, useFetch) {
+  if (capability.fetch && useFetch) {
+    return 'fetch'
+  } else if (capability.mozchunkedarraybuffer) {
+    return 'moz-chunked-arraybuffer'
+  } else if (capability.msstream) {
+    return 'ms-stream'
+  } else if (capability.arraybuffer && preferBinary) {
+    return 'arraybuffer'
+  } else if (capability.vbArray && preferBinary) {
+    return 'text:vbarray'
   } else {
-    var body = '';
-    for (var i = 0; i < this.body.length; i++) {
-      body += this.body[i].toString();
+    return 'text'
+  }
+}
+export default ClientRequest;
+
+function ClientRequest(opts) {
+  var self = this
+  Writable.call(self)
+
+  self._opts = opts
+  self._body = []
+  self._headers = {}
+  if (opts.auth)
+    self.setHeader('Authorization', 'Basic ' + new Buffer(opts.auth).toString('base64'))
+  Object.keys(opts.headers).forEach(function(name) {
+    self.setHeader(name, opts.headers[name])
+  })
+
+  var preferBinary
+  var useFetch = true
+  if (opts.mode === 'disable-fetch') {
+    // If the use of XHR should be preferred and includes preserving the 'content-type' header
+    useFetch = false
+    preferBinary = true
+  } else if (opts.mode === 'prefer-streaming') {
+    // If streaming is a high priority but binary compatibility and
+    // the accuracy of the 'content-type' header aren't
+    preferBinary = false
+  } else if (opts.mode === 'allow-wrong-content-type') {
+    // If streaming is more important than preserving the 'content-type' header
+    preferBinary = !capability.overrideMimeType
+  } else if (!opts.mode || opts.mode === 'default' || opts.mode === 'prefer-fast') {
+    // Use binary if text streaming may corrupt data or the content-type header, or for speed
+    preferBinary = true
+  } else {
+    throw new Error('Invalid value for opts.mode')
+  }
+  self._mode = decideMode(preferBinary, useFetch)
+
+  self.on('finish', function() {
+    self._onFinish()
+  })
+}
+
+inherits(ClientRequest, Writable)
+// Taken from http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader%28%29-method
+var unsafeHeaders = [
+  'accept-charset',
+  'accept-encoding',
+  'access-control-request-headers',
+  'access-control-request-method',
+  'connection',
+  'content-length',
+  'cookie',
+  'cookie2',
+  'date',
+  'dnt',
+  'expect',
+  'host',
+  'keep-alive',
+  'origin',
+  'referer',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+  'user-agent',
+  'via'
+]
+ClientRequest.prototype.setHeader = function(name, value) {
+  var self = this
+  var lowerName = name.toLowerCase()
+    // This check is not necessary, but it prevents warnings from browsers about setting unsafe
+    // headers. To be honest I'm not entirely sure hiding these warnings is a good thing, but
+    // http-browserify did it, so I will too.
+  if (unsafeHeaders.indexOf(lowerName) !== -1)
+    return
+
+  self._headers[lowerName] = {
+    name: name,
+    value: value
+  }
+}
+
+ClientRequest.prototype.getHeader = function(name) {
+  var self = this
+  return self._headers[name.toLowerCase()].value
+}
+
+ClientRequest.prototype.removeHeader = function(name) {
+  var self = this
+  delete self._headers[name.toLowerCase()]
+}
+
+ClientRequest.prototype._onFinish = function() {
+  var self = this
+
+  if (self._destroyed)
+    return
+  var opts = self._opts
+
+  var headersObj = self._headers
+  var body
+  if (opts.method === 'POST' || opts.method === 'PUT' || opts.method === 'PATCH') {
+    if (capability.blobConstructor()) {
+      body = new global.Blob(self._body.map(function(buffer) {
+        return toArrayBuffer(buffer)
+      }), {
+        type: (headersObj['content-type'] || {}).value || ''
+      })
+    } else {
+      // get utf8 string
+      body = Buffer.concat(self._body).toString()
     }
-    this.xhr.send(body);
   }
-};
 
-// Taken from http://dxr.mozilla.org/mozilla/mozilla-central/content/base/src/nsXMLHttpRequest.cpp.html
-Request.unsafeHeaders = [
-  "accept-charset",
-  "accept-encoding",
-  "access-control-request-headers",
-  "access-control-request-method",
-  "connection",
-  "content-length",
-  "cookie",
-  "cookie2",
-  "content-transfer-encoding",
-  "date",
-  "expect",
-  "host",
-  "keep-alive",
-  "origin",
-  "referer",
-  "te",
-  "trailer",
-  "transfer-encoding",
-  "upgrade",
-  "user-agent",
-  "via"
-];
+  if (self._mode === 'fetch') {
+    var headers = Object.keys(headersObj).map(function(name) {
+      return [headersObj[name].name, headersObj[name].value]
+    })
 
-Request.prototype.isSafeRequestHeader = function(headerName) {
-  if (!headerName) return false;
-  return indexOf(Request.unsafeHeaders, headerName.toLowerCase()) === -1;
-};
+    global.fetch(self._opts.url, {
+      method: self._opts.method,
+      headers: headers,
+      body: body,
+      mode: 'cors',
+      credentials: opts.withCredentials ? 'include' : 'same-origin'
+    }).then(function(response) {
+      self._fetchResponse = response
+      self._connect()
+    }, function(reason) {
+      self.emit('error', reason)
+    })
+  } else {
+    var xhr = self._xhr = new global.XMLHttpRequest()
+    try {
+      xhr.open(self._opts.method, self._opts.url, true)
+    } catch (err) {
+      process.nextTick(function() {
+        self.emit('error', err)
+      })
+      return
+    }
 
-var objectKeys = Object.keys || function(obj) {
-  var keys = [];
-  for (var key in obj) keys.push(key);
-  return keys;
-};
+    // Can't set responseType on really old browsers
+    if ('responseType' in xhr)
+      xhr.responseType = self._mode.split(':')[0]
 
-var isArray = Array.isArray || function(xs) {
-  return Object.prototype.toString.call(xs) === '[object Array]';
-};
+    if ('withCredentials' in xhr)
+      xhr.withCredentials = !!opts.withCredentials
 
-var indexOf = function(xs, x) {
-  if (xs.indexOf) return xs.indexOf(x);
-  for (var i = 0; i < xs.length; i++) {
-    if (xs[i] === x) return i;
+    if (self._mode === 'text' && 'overrideMimeType' in xhr)
+      xhr.overrideMimeType('text/plain; charset=x-user-defined')
+
+    Object.keys(headersObj).forEach(function(name) {
+      xhr.setRequestHeader(headersObj[name].name, headersObj[name].value)
+    })
+
+    self._response = null
+    xhr.onreadystatechange = function() {
+      switch (xhr.readyState) {
+      case rStates.LOADING:
+      case rStates.DONE:
+        self._onXHRProgress()
+        break
+      }
+    }
+      // Necessary for streaming in Firefox, since xhr.response is ONLY defined
+      // in onprogress, not in onreadystatechange with xhr.readyState = 3
+    if (self._mode === 'moz-chunked-arraybuffer') {
+      xhr.onprogress = function() {
+        self._onXHRProgress()
+      }
+    }
+
+    xhr.onerror = function() {
+      if (self._destroyed)
+        return
+      self.emit('error', new Error('XHR error'))
+    }
+
+    try {
+      xhr.send(body)
+    } catch (err) {
+      process.nextTick(function() {
+        self.emit('error', err)
+      })
+      return
+    }
   }
-  return -1;
-};
+}
 
-var isXHR2Compatible = function(obj) {
-  if (typeof Blob !== 'undefined' && obj instanceof Blob) return true;
-  if (typeof ArrayBuffer !== 'undefined' && obj instanceof ArrayBuffer) return true;
-  if (typeof FormData !== 'undefined' && obj instanceof FormData) return true;
-};
+/**
+ * Checks if xhr.status is readable and non-zero, indicating no error.
+ * Even though the spec says it should be available in readyState 3,
+ * accessing it throws an exception in IE8
+ */
+function statusValid(xhr) {
+  try {
+    var status = xhr.status
+    return (status !== null && status !== 0)
+  } catch (e) {
+    return false
+  }
+}
+
+ClientRequest.prototype._onXHRProgress = function() {
+  var self = this
+
+  if (!statusValid(self._xhr) || self._destroyed)
+    return
+
+  if (!self._response)
+    self._connect()
+
+  self._response._onXHRProgress()
+}
+
+ClientRequest.prototype._connect = function() {
+  var self = this
+
+  if (self._destroyed)
+    return
+
+  self._response = new IncomingMessage(self._xhr, self._fetchResponse, self._mode)
+  self.emit('response', self._response)
+}
+
+ClientRequest.prototype._write = function(chunk, encoding, cb) {
+  var self = this
+
+  self._body.push(chunk)
+  cb()
+}
+
+ClientRequest.prototype.abort = ClientRequest.prototype.destroy = function() {
+  var self = this
+  self._destroyed = true
+  if (self._response)
+    self._response._destroyed = true
+  if (self._xhr)
+    self._xhr.abort()
+    // Currently, there isn't a way to truly abort a fetch.
+    // If you like bikeshedding, see https://github.com/whatwg/fetch/issues/27
+}
+
+ClientRequest.prototype.end = function(data, encoding, cb) {
+  var self = this
+  if (typeof data === 'function') {
+    cb = data
+    data = undefined
+  }
+
+  Writable.prototype.end.call(self, data, encoding, cb)
+}
+
+ClientRequest.prototype.flushHeaders = function() {}
+ClientRequest.prototype.setTimeout = function() {}
+ClientRequest.prototype.setNoDelay = function() {}
+ClientRequest.prototype.setSocketKeepAlive = function() {}
