@@ -18,6 +18,7 @@ libs.set('string_decoder', require.resolve(join('..', 'src', 'es6', 'string-deco
 libs.set('http', require.resolve(join('..', 'src', 'es6', 'http')));
 libs.set('https', require.resolve(join('..', 'src', 'es6', 'http')));
 libs.set('os', require.resolve(join('..', 'src', 'es6', 'os')));
+libs.set('assert', require.resolve(join('..', 'src', 'es6', 'assert')));
 function resolveId(importee) {
   if (importee && importee.slice(-1) === '/') {
     importee === importee.slice(0, -1);

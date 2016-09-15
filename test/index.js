@@ -6,7 +6,8 @@ var files = [
   'events.js',
   'url-parse.js',
   'url-format.js',
-  'stream.js'
+  'stream.js',
+  'assert'
 ];
 describe('rollup-plugin-node-builtins', function() {
   files.forEach(function(file) {
@@ -27,7 +28,7 @@ describe('rollup-plugin-node-builtins', function() {
         var context = vm.createContext({
           done: done,
           setTimeout: setTimeout,
-          clearTimeout: clearTimeout,
+          clearTimeout: clearTimeout
         });
         context.self = context;
         script.runInContext(context);
