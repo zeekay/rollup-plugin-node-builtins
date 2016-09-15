@@ -18,7 +18,7 @@ describe('rollup-plugin-node-builtins', function() {
           builtins()
         ]
       };
-      if (file === 'stream.js') {
+      if (file === 'stream.js' || file === 'assert') {
         config.plugins.push(globals());
       }
       rollup.rollup(config).then(function(bundle) {
@@ -28,7 +28,8 @@ describe('rollup-plugin-node-builtins', function() {
         var context = vm.createContext({
           done: done,
           setTimeout: setTimeout,
-          clearTimeout: clearTimeout
+          clearTimeout: clearTimeout,
+          console: console
         });
         context.self = context;
         script.runInContext(context);

@@ -1,12 +1,12 @@
-import {ok} from 'assert';
+import {deepEqual} from 'assert';
 var err;
 try {
-  ok(false, 'something');
+  deepEqual({foo: {bar: ['baz']}}, {foo: {bar: ['bat']}}, 'something');
 } catch (e) {
   err = e;
 }
-if (err) {
+if (err && err.name === 'AssertionError') {
   done();
 } else {
-  done(new Error('not right'));
+  done(err || new Error('not right'));
 }
