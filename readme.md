@@ -21,6 +21,7 @@ The following modules include ES6 specific version which allow you to do named i
 - punycode
 - http*†
 - https*†
+- os*
 
 \* requires [node-globals plugin](https://github.com/calvinmetcalf/rollup-plugin-node-globals)
 
@@ -65,6 +66,12 @@ rollup({
 })
 ```
 
+Then something like
+
+```js
+
+```
+
 If you need more compex things like a module not listed above then you need to do the following: `node_modules/rollup-plugin-node-globals/**`, `node_modules/buffer-es6/**`, , `node_modules/process-es6/**` and `node_modules/rollup-plugin-node-builtins/src/es6/**` to the `commonjs` `excludes` if you use that plugin and make sure you set `browser` to be true in `nodeResolve`.  Also it should come before `nodeResolve` and `globals` should come after `commonjs`. For example:
 
 
@@ -89,3 +96,8 @@ rollup({
   ]
 })
 ```
+
+License
+===
+
+MIT except ES6 ports of browserify modules which are whatever the original library was.
