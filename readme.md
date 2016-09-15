@@ -37,7 +37,7 @@ import builtins from 'rollup-plugin-node-builtins';
 rollup({
   entry: 'main.js',
   plugins: [
-    builtins(),
+    builtins()
   ]
 })
 ```
@@ -51,10 +51,24 @@ import {inherits} from 'util';
 // etc
 ```
 
+Config for something more complicated like http
+
+```js
+import builtins from 'rollup-plugin-node-builtins';
+import globals from 'rollup-plugin-node-globals';
+rollup({
+  entry: 'main.js',
+  plugins: [
+    globals(),
+    builtins()
+  ]
+})
+```
+
 If you need more compex things like a module not listed above then you need to do the following: `node_modules/rollup-plugin-node-globals/**`, `node_modules/buffer-es6/**`, , `node_modules/process-es6/**` and `node_modules/rollup-plugin-node-builtins/src/es6/**` to the `commonjs` `excludes` if you use that plugin and make sure you set `browser` to be true in `nodeResolve`.  Also it should come before `nodeResolve` and `globals` should come after `commonjs`. For example:
 
 
-Config for using this with some of the none ported to es6 modules
+Config for using this with some of the non ported to es6 modules
 
 ```js
 import commonjs from 'rollup-plugin-commonjs';

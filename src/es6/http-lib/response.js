@@ -118,7 +118,9 @@ IncomingMessage.prototype._onXHRProgress = function() {
     try {
       // This fails in IE8
       response = new global.VBArray(xhr.responseBody).toArray()
-    } catch (e) {}
+    } catch (e) {
+      // pass
+    }
     if (response !== null) {
       self.push(new Buffer(response))
       break
