@@ -5,22 +5,26 @@ rollup-plugin-node-builtins
 npm install --save-dev rollup-plugin-node-builtins
 ```
 
-Allows the node builtins to be `require`d/`import`ed. Doing so gives the proper shims to support modules that were designed for Browserify.
+Allows the node builtins to be `require`d/`import`ed. Doing so gives the proper shims to support modules that were designed for Browserify, some modules require [rollup-plugin-node-globals](https://github.com/calvinmetcalf/rollup-plugin-node-globals).
 
 The following modules include ES6 specific version which allow you to do named imports in addition to the default import and should work fine if you only use this plugin.
 
-- process
+- process*
 - events
-- stream
+- stream*
 - util
 - path
-- buffer
+- buffer*
 - querystring
 - url
-- string_decoder
+- string_decoder*
 - punycode
+- http*
+- https*
 
-for all other modules this just provides the commonjs module form browserify and you will likely need to use  [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs), [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve), [rollup-plugin-json](https://github.com/rollup/rollup-plugin-json) and [rollup-plugin-node-globals](https://github.com/calvinmetcalf/rollup-plugin-node-globals) in order for them to work, some like crypto, are complex enough that they don't work very well with rollup at all, others may work.
+\* requires [node-globals plugin](https://github.com/calvinmetcalf/rollup-plugin-node-globals)
+
+for all other modules this just provides the commonjs module form browserify and you will likely need to use  [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs), [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve), and [rollup-plugin-json](https://github.com/rollup/rollup-plugin-json) in order for them to work, some like crypto, are complex enough that they don't work very well with rollup at all, others may work.
 
 config for using this with something simple like events or querystring
 
