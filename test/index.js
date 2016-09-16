@@ -2,12 +2,14 @@ var vm = require('vm');
 var rollup = require('rollup');
 var builtins = require('..');
 var globals = require('rollup-plugin-node-globals');
+var constants = require('constants');
 var files = [
   'events.js',
   'url-parse.js',
   'url-format.js',
   'stream.js',
-  'assert'
+  'assert.js',
+  'constants.js'
 ];
 describe('rollup-plugin-node-builtins', function() {
   files.forEach(function(file) {
@@ -18,7 +20,7 @@ describe('rollup-plugin-node-builtins', function() {
           builtins()
         ]
       };
-      if (file === 'stream.js' || file === 'assert') {
+      if (file === 'stream.js' || file === 'assert.js') {
         config.plugins.push(globals());
       }
       rollup.rollup(config).then(function(bundle) {
@@ -29,7 +31,8 @@ describe('rollup-plugin-node-builtins', function() {
           done: done,
           setTimeout: setTimeout,
           clearTimeout: clearTimeout,
-          console: console
+          console: console,
+          _constants: constants
         });
         context.self = context;
         script.runInContext(context);

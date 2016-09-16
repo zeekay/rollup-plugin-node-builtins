@@ -23,6 +23,7 @@ The following modules include ES6 specific version which allow you to do named i
 - https*†
 - os*
 - assert*
+- constants
 
 \* requires [node-globals plugin](https://github.com/calvinmetcalf/rollup-plugin-node-globals)
 
