@@ -22,9 +22,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-
+var _endianness;
 export function endianness() {
-  return 'LE';
+  if (typeof _endianness === 'undefined') {
+    var a = new ArrayBuffer(2);
+    var b = new Uint8Array(a);
+    var c = new Uint16Array(a);
+    b[0] = 1;
+    b[1] = 2;
+    if (c[0] === 258) {
+      _endianness = 'BE';
+    } else if (c[0] === 513){
+      _endianness = 'LE';
+    } else {
+      throw new Error('unable to figure out endianess');
+    }
+  }
+  return _endianness;
 }
 
 export function hostname() {
