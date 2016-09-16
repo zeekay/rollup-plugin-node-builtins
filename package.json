@@ -7,9 +7,11 @@
   "scripts": {
     "test": "mocha",
     "pretest": "npm run build",
-    "build": "rollup -c -f cjs -o dist/rollup-plugin-node-builtins.cjs.js && rollup -c -f es6 -o dist/rollup-plugin-node-builtins.es6.js",
+    "build": "rollup -c -f cjs -o dist/rollup-plugin-node-builtins.cjs.js && rollup -c -f es6 -o dist/rollup-plugin-node-builtins.es6.js && node build-constants.js",
     "prebuild": "rm -rf dist && mkdir dist",
-    "prepublish": "npm test"
+    "prepublish": "npm test",
+    "browser-test": "serve browser-test/dist",
+    "prebrowser-test": "npm run build && node ./browser-test/index.js"
   },
   "keywords": [
     "rollup-plugin"
@@ -18,20 +20,16 @@
   "license": "ISC",
   "dependencies": {
     "buffer-es6": "^4.9.2",
-    "inherits": "^2.0.1",
     "node-libs-browser": "^1.0.0",
     "process-es6": "^0.11.2"
   },
   "devDependencies": {
     "babel-preset-es2015-rollup": "^1.1.1",
+    "debug": "^2.2.0",
     "mocha": "^3.0.2",
-    "readable-stream": "^2.0.6",
-    "rollup": "^0.25.4",
+    "rollup": "^0.32.1",
     "rollup-plugin-babel": "^2.4.0",
-    "rollup-plugin-commonjs": "^2.2.1",
-    "rollup-plugin-json": "^2.0.0",
-    "rollup-plugin-node-globals": "^1.0.5",
-    "rollup-plugin-node-resolve": "^1.5.0"
+    "rollup-plugin-node-globals": "^1.0.7"
   },
   "repository": {
     "type": "git",
