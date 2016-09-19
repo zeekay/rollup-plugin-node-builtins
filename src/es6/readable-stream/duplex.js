@@ -12,7 +12,7 @@ for (var v = 0; v < keys.length; v++) {
   var method = keys[v];
   if (!Duplex.prototype[method]) Duplex.prototype[method] = Writable.prototype[method];
 }
-
+export default Duplex;
 export function Duplex(options) {
   if (!(this instanceof Duplex)) return new Duplex(options);
 

@@ -1,7 +1,5 @@
-import _libs from 'node-libs-browser';
 import {join} from 'path';
 const libs = new Map();
-Object.keys(_libs).forEach(key=>libs.set(key, _libs[key]));
 
 // our es6 versions
 libs.set('process', require.resolve('process-es6'));
@@ -19,7 +17,21 @@ libs.set('http', require.resolve(join('..', 'src', 'es6', 'http')));
 libs.set('https', require.resolve(join('..', 'src', 'es6', 'http')));
 libs.set('os', require.resolve(join('..', 'src', 'es6', 'os')));
 libs.set('assert', require.resolve(join('..', 'src', 'es6', 'assert')));
-libs.set('constants', require.resolve(join('..', 'dist', 'constants')));
+libs.set('constants', require.resolve('./constants'));
+libs.set('_stream_duplex', require.resolve(join('..', 'src', 'es6', 'readable-stream', 'duplex')));
+libs.set('_stream_passthrough', require.resolve(join('..', 'src', 'es6', 'readable-stream', 'passthrough')));
+libs.set('_stream_readable', require.resolve(join('..', 'src', 'es6', 'readable-stream', 'readable')));
+libs.set('_stream_writable', require.resolve(join('..', 'src', 'es6', 'readable-stream', 'writable')));
+libs.set('_stream_transform', require.resolve(join('..', 'src', 'es6', 'readable-stream', 'transform')));
+libs.set('timers', require.resolve(join('..', 'src', 'es6', 'timers')));
+libs.set('console', require.resolve(join('..', 'src', 'es6', 'console')));
+// not shimmed
+libs.set('crypto', require.resolve('crypto-browserify'));
+libs.set('domain', require.resolve('domain-browser'));
+libs.set('tty', require.resolve('tty-browserify'));
+libs.set('vm', require.resolve('vm-browserify'));
+libs.set('zlib', require.resolve('browserify-zlib'));
+
 function resolveId(importee) {
   if (importee && importee.slice(-1) === '/') {
     importee === importee.slice(0, -1);

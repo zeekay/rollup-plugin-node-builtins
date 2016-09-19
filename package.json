@@ -19,9 +19,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "browserify-zlib": "^0.1.4",
     "buffer-es6": "^4.9.2",
-    "node-libs-browser": "^1.0.0",
-    "process-es6": "^0.11.2"
+    "crypto-browserify": "^3.11.0",
+    "domain-browser": "^1.1.7",
+    "process-es6": "^0.11.2",
+    "tty-browserify": "0.0.0"
   },
   "devDependencies": {
     "babel-preset-es2015-rollup": "^1.1.1",

@@ -128,7 +128,7 @@ WritableState.prototype.getBuffer = function writableStateGetBuffer() {
   return out;
 };
 
-
+export default Writable;
 export function Writable(options) {
 
   // Writable ctor is applied to Duplexes, though they're not
