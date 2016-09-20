@@ -55,7 +55,17 @@ var globals = ['Array', 'Boolean', 'Date', 'Error', 'EvalError', 'Function',
   'eval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape'
 ];
 
-function Context() {}
+function Context() {
+  if (global.document) {
+    var iframe = global.document.createElement('iframe');
+    if (!iframe.style) iframe.style = {};
+    iframe.style.display = 'none';
+    global.document.body.appendChild(iframe);
+    Object.defineProperty(this, '_iframe', {
+      value: iframe
+    });
+  }
+}
 Context.prototype = {};
 
 export function Script(code) {
@@ -63,29 +73,20 @@ export function Script(code) {
   this.code = code;
 }
 function otherRunInContext(code, context) {
-  var args = [];
-  var values = [];
-  forEach(Object_keys(context), function(key) {
-    args.push(key)
-    values.push(context[key]);
+  var args = Object_keys(global);
+  args.push('with (this.__ctx__){return eval(this.__code__)}');
+  var fn = Function.apply(null, args);
+  return fn.apply({
+    __code__: code,
+    __ctx__: context
   });
-  var fullargs = args.concat(globals);
-  fullargs.push(code);
-  var fn = Function.apply(null, fullargs);
-  fn.apply(null, values);
 }
 Script.prototype.runInContext = function(context) {
   if (!(context instanceof Context)) {
     throw new TypeError('needs a \'context\' argument.');
   }
   if (global.document) {
-    var iframe = global.document.createElement('iframe');
-    if (!iframe.style) iframe.style = {};
-    iframe.style.display = 'none';
-
-    global.document.body.appendChild(iframe);
-
-    var win = iframe.contentWindow;
+    var win = context._iframe.contentWindow;
     var wEval = win.eval,
       wExecScript = win.execScript;
 
@@ -123,7 +124,6 @@ Script.prototype.runInContext = function(context) {
       }
     });
 
-    global.document.body.removeChild(iframe);
 
     return res;
   }
@@ -131,7 +131,8 @@ Script.prototype.runInContext = function(context) {
 };
 
 Script.prototype.runInThisContext = function() {
-  return eval(this.code); // maybe...
+  var fn = new Function('code', 'return eval(code);');
+  return fn.call(global, this.code); // maybe...
 };
 
 Script.prototype.runInNewContext = function(context) {

@@ -11,7 +11,7 @@
     "prebuild": "rm -rf dist && mkdir dist",
     "prepublish": "npm test",
     "browser-test": "serve browser-test/dist",
-    "prebrowser-test": "npm run build && node ./browser-test/index.js"
+    "prebrowser-test": "rm browser-test/dist/bundle.js && npm run build && node ./browser-test/index.js"
   },
   "keywords": [
     "rollup-plugin"

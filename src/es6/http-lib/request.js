@@ -5,7 +5,7 @@ import {Writable} from 'stream';
 import toArrayBuffer from './to-arraybuffer';
 
 function decideMode(preferBinary, useFetch) {
-  if (capability.fetch && useFetch) {
+  if (capability.hasFetch && useFetch) {
     return 'fetch'
   } else if (capability.mozchunkedarraybuffer) {
     return 'moz-chunked-arraybuffer'

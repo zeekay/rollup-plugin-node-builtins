@@ -1,4 +1,4 @@
-export var fetch = isFunction(global.fetch) && isFunction(global.ReadableStream)
+export var hasFetch = isFunction(global.fetch) && isFunction(global.ReadableStream)
 
 var _blobConstructor;
 export function blobConstructor() {
@@ -39,8 +39,8 @@ var haveSlice = haveArrayBuffer && isFunction(global.ArrayBuffer.prototype.slice
 export var arraybuffer = haveArrayBuffer && checkTypeSupport('arraybuffer')
   // These next two tests unavoidably show warnings in Chrome. Since fetch will always
   // be used if it's available, just return false for these to avoid the warnings.
-export var msstream = !fetch && haveSlice && checkTypeSupport('ms-stream')
-export var mozchunkedarraybuffer = !fetch && haveArrayBuffer &&
+export var msstream = !hasFetch && haveSlice && checkTypeSupport('ms-stream')
+export var mozchunkedarraybuffer = !hasFetch && haveArrayBuffer &&
   checkTypeSupport('moz-chunked-arraybuffer')
 export var overrideMimeType = isFunction(xhr.overrideMimeType)
 export var vbArray = isFunction(global.VBArray)

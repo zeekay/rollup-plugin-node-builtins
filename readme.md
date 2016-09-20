@@ -26,12 +26,15 @@ The following modules include ES6 specific version which allow you to do named i
 - constants
 - timers*
 - console*‡
-- vm*
+- vm*§
 
 \* requires [node-globals plugin](https://github.com/calvinmetcalf/rollup-plugin-node-globals)
 
 † the http and https modules are actually the same and don't differentiate based on protocol
+
 ‡ default export only, because it's console, seriously just use the global
+
+§ vm does not have all corner cases and has less in a web worker
 
 The following modules are not shimed and and we just provide the commonjs one from browserify  and you will likely need to use  [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs), [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve), and [rollup-plugin-json](https://github.com/rollup/rollup-plugin-json) in order for them to work, some like crypto, are complex enough that they don't work very well with rollup at all, others may work.
 

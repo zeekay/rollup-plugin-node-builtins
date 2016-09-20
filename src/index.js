@@ -25,11 +25,11 @@ libs.set('_stream_writable', require.resolve(join('..', 'src', 'es6', 'readable-
 libs.set('_stream_transform', require.resolve(join('..', 'src', 'es6', 'readable-stream', 'transform')));
 libs.set('timers', require.resolve(join('..', 'src', 'es6', 'timers')));
 libs.set('console', require.resolve(join('..', 'src', 'es6', 'console')));
+libs.set('vm', require.resolve(join('..', 'src', 'es6', 'vm')));
 // not shimmed
 libs.set('crypto', require.resolve('crypto-browserify'));
 libs.set('domain', require.resolve('domain-browser'));
 libs.set('tty', require.resolve('tty-browserify'));
-libs.set('vm', require.resolve('vm-browserify'));
 libs.set('zlib', require.resolve('browserify-zlib'));
 
 function resolveId(importee) {
