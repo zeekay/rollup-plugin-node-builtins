@@ -24,10 +24,11 @@ function afterMain() {
   runInContext('var x = 1', context);
   deepEqual(context, { x: 1 });
 
-  runInContext('function y() { return ++x; }', context);
-  var x = runInContext('y()', context);
+  runInContext('var y = 2;', context);
+  var x = runInContext('++x', context);
   equal(x, 2);
   equal(context.x, 2);
+  equal(context.x, context.y);
   console.log('ok main');
 }
 function afterWorker() {

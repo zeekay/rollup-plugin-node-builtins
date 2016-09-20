@@ -55,17 +55,7 @@ var globals = ['Array', 'Boolean', 'Date', 'Error', 'EvalError', 'Function',
   'eval', 'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'undefined', 'unescape'
 ];
 
-function Context() {
-  if (global.document) {
-    var iframe = global.document.createElement('iframe');
-    if (!iframe.style) iframe.style = {};
-    iframe.style.display = 'none';
-    global.document.body.appendChild(iframe);
-    Object.defineProperty(this, '_iframe', {
-      value: iframe
-    });
-  }
-}
+function Context() {}
 Context.prototype = {};
 
 export function Script(code) {
@@ -86,7 +76,13 @@ Script.prototype.runInContext = function(context) {
     throw new TypeError('needs a \'context\' argument.');
   }
   if (global.document) {
-    var win = context._iframe.contentWindow;
+    var iframe = global.document.createElement('iframe');
+    if (!iframe.style) iframe.style = {};
+    iframe.style.display = 'none';
+
+    global.document.body.appendChild(iframe);
+
+    var win = iframe.contentWindow;
     var wEval = win.eval,
       wExecScript = win.execScript;
 
@@ -123,7 +119,7 @@ Script.prototype.runInContext = function(context) {
         defineProp(context, key, win[key]);
       }
     });
-
+    global.document.body.removeChild(iframe);
 
     return res;
   }
