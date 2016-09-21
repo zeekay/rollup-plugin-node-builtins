@@ -26,13 +26,15 @@ libs.set('_stream_transform', require.resolve(join('..', 'src', 'es6', 'readable
 libs.set('timers', require.resolve(join('..', 'src', 'es6', 'timers')));
 libs.set('console', require.resolve(join('..', 'src', 'es6', 'console')));
 libs.set('vm', require.resolve(join('..', 'src', 'es6', 'vm')));
+libs.set('zlib', require.resolve(join('..', 'src', 'es6', 'zlib')));
+
 // not shimmed
 libs.set('crypto', require.resolve('crypto-browserify'));
 libs.set('domain', require.resolve('domain-browser'));
 libs.set('tty', require.resolve('tty-browserify'));
-libs.set('zlib', require.resolve('browserify-zlib'));
 
 function resolveId(importee) {
+  console.log(importee);
   if (importee && importee.slice(-1) === '/') {
     importee === importee.slice(0, -1);
   }

@@ -14,7 +14,8 @@ var files = [
   'constants.js',
   'os.js',
   'path.js',
-  'string-decoder.js'
+  'string-decoder.js',
+  'zlib.js'
 ];
 describe('rollup-plugin-node-builtins', function() {
   files.forEach(function(file) {
@@ -25,7 +26,7 @@ describe('rollup-plugin-node-builtins', function() {
           builtins()
         ]
       };
-      if (file === 'stream.js' || file === 'assert.js' || file === 'string-decoder.js') {
+      if (file === 'stream.js' || file === 'assert.js' || file === 'string-decoder.js' || file === 'zlib.js') {
         config.plugins.push(globals());
       }
       rollup.rollup(config).then(function(bundle) {

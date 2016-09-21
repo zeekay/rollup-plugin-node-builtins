@@ -27,6 +27,7 @@ The following modules include ES6 specific version which allow you to do named i
 - timers*
 - console*‡
 - vm*§
+- zlib*
 
 \* requires [node-globals plugin](https://github.com/calvinmetcalf/rollup-plugin-node-globals)
 
@@ -34,14 +35,13 @@ The following modules include ES6 specific version which allow you to do named i
 
 ‡ default export only, because it's console, seriously just use the global
 
-§ vm does not have all corner cases and has less in a web worker
+§ vm does not have all corner cases and has less of them in a web worker
 
 The following modules are not shimed and and we just provide the commonjs one from browserify  and you will likely need to use  [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs), [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve), and [rollup-plugin-json](https://github.com/rollup/rollup-plugin-json) in order for them to work, some like crypto, are complex enough that they don't work very well with rollup at all, others may work.
 
 - crypto
 - domain
 - tty
-- zlib
 
 Not all included modules rollup equally, streams (and by extension anything that requires it like http) are a mess of circular references that are pretty much impossible to tree-shake out, similarly url methods are actually a shortcut to a url object so those methods don't tree shake out very well, punycode, path, querystring, events, util, and process tree shake very well especially if you do named imports.
 
