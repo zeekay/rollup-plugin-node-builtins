@@ -15,7 +15,8 @@ var files = [
   'os.js',
   'path.js',
   'string-decoder.js',
-  'zlib.js'
+  'zlib.js',
+  'domain.js'
 ];
 describe('rollup-plugin-node-builtins', function() {
   files.forEach(function(file) {

@@ -601,3 +601,35 @@ inherits(Gunzip, Zlib);
 inherits(DeflateRaw, Zlib);
 inherits(InflateRaw, Zlib);
 inherits(Unzip, Zlib);
+export default {
+  codes: codes,
+  createDeflate: createDeflate,
+  createInflate: createInflate,
+  createDeflateRaw: createDeflateRaw,
+  createInflateRaw: createInflateRaw,
+  createGzip: createGzip,
+  createGunzip: createGunzip,
+  createUnzip: createUnzip,
+  deflate: deflate,
+  deflateSync: deflateSync,
+  gzip: gzip,
+  gzipSync: gzipSync,
+  deflateRaw: deflateRaw,
+  deflateRawSync: deflateRawSync,
+  unzip: unzip,
+  unzipSync: unzipSync,
+  inflate: inflate,
+  inflateSync: inflateSync,
+  gunzip: gunzip,
+  gunzipSync: gunzipSync,
+  inflateRaw: inflateRaw,
+  inflateRawSync: inflateRawSync,
+  Deflate: Deflate,
+  Inflate: Inflate,
+  Gzip: Gzip,
+  Gunzip: Gunzip,
+  DeflateRaw: DeflateRaw,
+  InflateRaw: InflateRaw,
+  Unzip: Unzip,
+  Zlib: Zlib
+};

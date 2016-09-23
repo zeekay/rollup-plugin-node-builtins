@@ -27,14 +27,13 @@ libs.set('timers', require.resolve(join('..', 'src', 'es6', 'timers')));
 libs.set('console', require.resolve(join('..', 'src', 'es6', 'console')));
 libs.set('vm', require.resolve(join('..', 'src', 'es6', 'vm')));
 libs.set('zlib', require.resolve(join('..', 'src', 'es6', 'zlib')));
+libs.set('tty', require.resolve(join('..', 'src', 'es6', 'tty')));
+libs.set('domain', require.resolve(join('..', 'src', 'es6', 'domain')));
 
 // not shimmed
 libs.set('crypto', require.resolve('crypto-browserify'));
-libs.set('domain', require.resolve('domain-browser'));
-libs.set('tty', require.resolve('tty-browserify'));
 
 function resolveId(importee) {
-  console.log(importee);
   if (importee && importee.slice(-1) === '/') {
     importee === importee.slice(0, -1);
   }
