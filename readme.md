@@ -24,12 +24,24 @@ The following modules include ES6 specific version which allow you to do named i
 - os*
 - assert*
 - constants
+- timers*
+- console*‡
+- vm*§
+- zlib*
+- tty
+- domain
 
 \* requires [node-globals plugin](https://github.com/calvinmetcalf/rollup-plugin-node-globals)
 
 † the http and https modules are actually the same and don't differentiate based on protocol
 
-for all other modules this just provides the commonjs module form browserify and you will likely need to use  [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs), [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve), and [rollup-plugin-json](https://github.com/rollup/rollup-plugin-json) in order for them to work, some like crypto, are complex enough that they don't work very well with rollup at all, others may work.
+‡ default export only, because it's console, seriously just use the global
+
+§ vm does not have all corner cases and has less of them in a web worker
+
+The following modules are not shimed and and we just provide the commonjs one from browserify  and you will likely need to use  [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs), [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve), and [rollup-plugin-json](https://github.com/rollup/rollup-plugin-json) in order for them to work, some like crypto, are complex enough that they don't work very well with rollup at all, others may work.
+
+- crypto
 
 Not all included modules rollup equally, streams (and by extension anything that requires it like http) are a mess of circular references that are pretty much impossible to tree-shake out, similarly url methods are actually a shortcut to a url object so those methods don't tree shake out very well, punycode, path, querystring, events, util, and process tree shake very well especially if you do named imports.
 
@@ -66,12 +78,6 @@ rollup({
     builtins()
   ]
 })
-```
-
-Then something like
-
-```js
-
 ```
 
 If you need more compex things like a module not listed above then you need to do the following: `node_modules/rollup-plugin-node-globals/**`, `node_modules/buffer-es6/**`, , `node_modules/process-es6/**` and `node_modules/rollup-plugin-node-builtins/src/es6/**` to the `commonjs` `excludes` if you use that plugin and make sure you set `browser` to be true in `nodeResolve`.  Also it should come before `nodeResolve` and `globals` should come after `commonjs`. For example:

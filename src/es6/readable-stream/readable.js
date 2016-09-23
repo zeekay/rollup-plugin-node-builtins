@@ -99,7 +99,7 @@ function ReadableState(options, stream) {
     this.encoding = options.encoding;
   }
 }
-
+export default Readable;
 export function Readable(options) {
 
   if (!(this instanceof Readable)) return new Readable(options);

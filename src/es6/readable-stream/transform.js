@@ -80,7 +80,7 @@ function afterTransform(stream, er, data) {
     stream._read(rs.highWaterMark);
   }
 }
-
+export default Transform;
 export function Transform(options) {
   if (!(this instanceof Transform)) return new Transform(options);
 
