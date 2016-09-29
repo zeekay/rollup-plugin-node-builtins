@@ -235,8 +235,8 @@ function _addListener(target, type, listener, prepend) {
       m = $getMaxListeners(target);
       if (m && m > 0 && existing.length > m) {
         existing.warned = true;
-        const w = new Error('Possible EventEmitter memory leak detected. ' +
-                            `${existing.length} ${type} listeners added. ` +
+        var w = new Error('Possible EventEmitter memory leak detected. ' +
+                            existing.length + ' ' + type + ' listeners added. ' +
                             'Use emitter.setMaxListeners() to increase limit');
         w.name = 'MaxListenersExceededWarning';
         w.emitter = target;
@@ -429,10 +429,10 @@ EventEmitter.listenerCount = function(emitter, type) {
 
 EventEmitter.prototype.listenerCount = listenerCount;
 function listenerCount(type) {
-  const events = this._events;
+  var events = this._events;
 
   if (events) {
-    const evlistener = events[type];
+    var evlistener = events[type];
 
     if (typeof evlistener === 'function') {
       return 1;
@@ -463,7 +463,7 @@ function arrayClone(arr, i) {
 }
 
 function unwrapListeners(arr) {
-  const ret = new Array(arr.length);
+  var ret = new Array(arr.length);
   for (var i = 0; i < ret.length; ++i) {
     ret[i] = arr[i].listener || arr[i];
   }
