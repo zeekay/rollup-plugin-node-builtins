@@ -31,16 +31,24 @@ libs.set('tty', require.resolve(join('..', 'src', 'es6', 'tty')));
 libs.set('domain', require.resolve(join('..', 'src', 'es6', 'domain')));
 
 // not shimmed
-libs.set('crypto', require.resolve('crypto-browserify'));
-
-function resolveId(importee) {
-  if (importee && importee.slice(-1) === '/') {
-    importee === importee.slice(0, -1);
+//libs.set('crypto', );
+const CRYPTO_PATH = require.resolve('crypto-browserify');
+const EMPTY_PATH = require.resolve(join('..', 'src', 'es6', 'empty'));
+export default function (opts) {
+  opts = opts || {};
+  let cryptoPath = EMPTY_PATH;
+  if (opts.crypto) {
+    cryptoPath = CRYPTO_PATH;
   }
-  if (libs.has(importee)) {
-    return libs.get(importee);
-  }
-}
-export default function () {
-  return {resolveId};
+  return {resolveId(importee) {
+    if (importee && importee.slice(-1) === '/') {
+      importee === importee.slice(0, -1);
+    }
+    if (libs.has(importee)) {
+      return libs.get(importee);
+    }
+    if (importee === 'crypto') {
+      return cryptoPath;
+    }
+  }};
 }
