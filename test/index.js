@@ -16,7 +16,8 @@ var files = [
   'path.js',
   'string-decoder.js',
   'zlib.js',
-  'domain.js'
+  'domain.js',
+  'crypto.js'
 ];
 describe('rollup-plugin-node-builtins', function() {
   files.forEach(function(file) {
@@ -48,4 +49,20 @@ describe('rollup-plugin-node-builtins', function() {
       }).catch(done);
     });
   })
-});
+  it('crypto option works (though is broken)', function(done) {
+    var config = {
+      entry: 'test/examples/crypto.js',
+      plugins: [
+        builtins({
+          crypto: true
+        })
+      ]
+    };
+    rollup.rollup(config).then(function() {
+      done(new Error ('should not get here'))
+    },function (err) {
+      debug(err)
+      done();
+    });
+  });
+})
