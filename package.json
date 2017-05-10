@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-node-builtins",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "use node builtins in browser with rollup",
   "main": "dist/rollup-plugin-node-builtins.cjs.js",
   "jsnext:main": "dist/rollup-plugin-node-builtins.es6.js",
