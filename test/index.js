@@ -32,20 +32,21 @@ describe('rollup-plugin-node-builtins', function() {
         config.plugins.push(globals());
       }
       rollup.rollup(config).then(function(bundle) {
-        var generated = bundle.generate();
-        var code = generated.code;
-        debug(code);
-        var script = new vm.Script(code);
-        var context = vm.createContext({
-          done: done,
-          setTimeout: setTimeout,
-          clearTimeout: clearTimeout,
-          console: console,
-          _constants: constants,
-          _osEndianness: os.endianness()
-        });
-        context.self = context;
-        script.runInContext(context);
+        bundle.generate({format: 'es'}).then(function(generated) {
+          var code = generated.code;
+          debug(code);
+          var script = new vm.Script(code);
+          var context = vm.createContext({
+            done: done,
+            setTimeout: setTimeout,
+            clearTimeout: clearTimeout,
+            console: console,
+            _constants: constants,
+            _osEndianness: os.endianness()
+          });
+          context.self = context;
+          script.runInContext(context);
+        })
       }).catch(done);
     });
   })
